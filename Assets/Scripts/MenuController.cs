@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using Photon.Pun;
 using Photon.Realtime;
+using Unity.VisualScripting;
 
 public class MenuController : MonoBehaviourPunCallbacks
 {
@@ -49,5 +50,20 @@ public class MenuController : MonoBehaviourPunCallbacks
         UsernameMenu.SetActive(false);
         PhotonNetwork.NickName = UsernameInput.text;
         Debug.Log("Username set to: " + PhotonNetwork.NickName);
+    }
+    public void CreateGame()
+    {
+        PhotonNetwork.CreateRoom(CreateGameInput.text, new RoomOptions() { MaxPlayers = 5}, null);
+    }
+    public void JoinGame()
+    {
+        RoomOptions roomOptions = new RoomOptions();
+        roomOptions.MaxPlayers = 5;
+        PhotonNetwork.JoinOrCreateRoom(JoinGameInput.text, roomOptions, TypedLobby.Default);
+    }
+    public override void OnJoinedRoom()
+    {
+        PhotonNetwork.LoadLevel("MainGame");
+        
     }
 }
