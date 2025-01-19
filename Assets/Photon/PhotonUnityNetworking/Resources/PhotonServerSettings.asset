@@ -41,6 +41,13 @@ MonoBehaviour:
   - RespawnSpaceship
   - FlipFalse
   - FlipTrue
+  - SendMessage
+  - ChangeDir_Left
+  - DestroyObject
+  - ReduceHealth
+  - ShootRPC
+  - Dead
+  - Respawn
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

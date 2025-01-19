@@ -1,6 +1,7 @@
 using UnityEngine;
 using Photon.Pun;
 using TMPro;
+using Photon.Pun.Demo.Asteroids;
 public class Player : MonoBehaviourPun
 {
     public Rigidbody2D rb;
@@ -12,6 +13,13 @@ public class Player : MonoBehaviourPun
     public bool isGrounded = false;
     public float moveSpeed;
     public float jumpForce;
+
+    private TMP_InputField ChatInputField;
+
+    public GameObject BulletObject;
+    public Transform FirePosition;
+
+    public bool disableInput = false;
 
     private void Awake()
     {
@@ -25,46 +33,85 @@ public class Player : MonoBehaviourPun
             PlayerNameText.text = photonView.Owner.NickName;
             PlayerNameText.color = Color.cyan;
         }
+        ChatInputField = MainGameUi.Instance.ChatInputField;
     }
     private void Update()
     {
-        if (photonView.IsMine)
+        if (photonView.IsMine && !disableInput)
         {
-            CheckInput();
+            if (!ChatInputField.isFocused)
+            {
+                CheckInput();
+            }
         }
     }
     private void CheckInput()
     {
-        var move = new Vector3(Input.GetAxisRaw("Horizontal"), 0);
-        transform.position += move * moveSpeed * Time.deltaTime;
+        float moveInput = Input.GetAxisRaw("Horizontal");
 
-        if (Input.GetKeyDown(KeyCode.A))
+        if (moveInput != 0)
         {
-            photonView.RPC("FlipTrue", RpcTarget.AllBuffered);
-        }
+            transform.position += new Vector3(moveInput,0) * moveSpeed * Time.deltaTime;
 
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            photonView.RPC("FlipFalse", RpcTarget.AllBuffered);
-        }
-
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
-        {
+            //Handle sprite flip
+            if (moveInput < 0)
+            {
+                photonView.RPC("FlipTrue", RpcTarget.AllBuffered);
+            }
+            else if (moveInput > 0)
+            {
+                photonView.RPC("FlipFalse", RpcTarget.AllBuffered);
+            }
             anim.SetBool("isRunning", true);
         }
         else
         {
             anim.SetBool("isRunning", false);
         }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            anim.SetTrigger("ShootTrigger");
+            //shoot method is assigned in animation event shoot
+        }
+    }
+    
+    //called via animation event
+    private void Shoot()
+    {
+        GameObject bullet = PhotonNetwork.Instantiate(BulletObject.name, 
+        FirePosition.position, 
+        Quaternion.identity, 0);
+
+        //adjust bullet direction based on player direction
+        if (sr.flipX)
+        {
+            bullet.GetComponent<PhotonView>().RPC("ChangeDir_Left", RpcTarget.AllBuffered);
+        }
     }
     [PunRPC]
     private void FlipTrue()
     {
         sr.flipX = true;
+        UpdateFirePosition();
     }
     [PunRPC]
     private void FlipFalse()
     {
         sr.flipX = false;
+        UpdateFirePosition();
+    }
+    private void UpdateFirePosition()
+    {
+        if (sr.flipX)
+        {
+            FirePosition.localPosition = new Vector3(-Mathf.Abs(FirePosition.localPosition.x), 
+            FirePosition.localPosition.y, 0);
+        }
+        else
+        {
+            FirePosition.localPosition = new Vector3(Mathf.Abs(FirePosition.localPosition.x), 
+            FirePosition.localPosition.y, 0);
+        }
     }
 }
