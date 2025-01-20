@@ -1,7 +1,6 @@
 using UnityEngine;
 using Photon.Pun;
 using TMPro;
-using Photon.Pun.Demo.Asteroids;
 public class Player : MonoBehaviourPun
 {
     public Rigidbody2D rb;

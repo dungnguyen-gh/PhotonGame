@@ -25,7 +25,7 @@ public class ChatManager : MonoBehaviourPun, IPunObservable
             {
                 if (!string.IsNullOrEmpty(ChatInputField.text))
                 {
-                    photonView.RPC("SendMessage", RpcTarget.AllBuffered, ChatInputField.text);
+                    photonView.RPC("SendChatMessage", RpcTarget.AllBuffered, ChatInputField.text);
                     BubbleSpeechObject.SetActive(true);
 
                     ChatInputField.text = "";
@@ -36,7 +36,7 @@ public class ChatManager : MonoBehaviourPun, IPunObservable
         }
     }
     [PunRPC]
-    private void SendMessage(string message)
+    private void SendChatMessage(string message)
     {
         UpdatedText.text = message;
         StartCoroutine(Remove());
