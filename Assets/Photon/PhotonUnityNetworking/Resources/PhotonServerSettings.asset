@@ -48,6 +48,8 @@ MonoBehaviour:
   - ShootRPC
   - Dead
   - Respawn
+  - SendChatMessage
+  - TriggerShootAnimation
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

@@ -11,6 +11,8 @@ public class Bullet : MonoBehaviourPun, IPunObservable
 
     public float BulletDamage = 30f;
 
+    private PhotonView shooterView; //track shooter
+
     private void Awake() 
     {
         StartCoroutine(DestroyByTime());
@@ -19,6 +21,17 @@ public class Bullet : MonoBehaviourPun, IPunObservable
     {
         yield return new WaitForSeconds(DestroyTime);
         this.GetComponent<PhotonView>().RPC("DestroyObject", RpcTarget.AllBuffered);
+    }
+
+    public void SetShooter(PhotonView shooter)
+    {
+        shooterView = shooter;
+        Collider2D bulletCollider = GetComponent<Collider2D>();
+        Collider2D shooterCollider = shooter.GetComponent<Collider2D>();
+        if (bulletCollider != null && shooterCollider != null)
+        {
+            Physics2D.IgnoreCollision(bulletCollider, shooterCollider);
+        }
     }
     [PunRPC]
     public void ChangeDir_Left()
@@ -31,7 +44,7 @@ public class Bullet : MonoBehaviourPun, IPunObservable
     {
         if (photonView.IsMine)
         {
-            Destroy(this.gameObject);
+            PhotonNetwork.Destroy(this.gameObject);
         }
     }
     public void Update()
@@ -46,13 +59,19 @@ public class Bullet : MonoBehaviourPun, IPunObservable
         {
             return;
         }
-        PhotonView target = other.gameObject.GetComponent<PhotonView>();
+        PhotonView targetView = other.gameObject.GetComponent<PhotonView>();
 
-        if (target != null && (!target.IsMine || target.IsRoomView))
+        //ignore the collision if the target is the shooter
+        if (targetView == shooterView)
         {
-            if (target.tag == "Player")
+            return;
+        }
+
+        if (targetView != null && (!targetView.IsMine || targetView.IsRoomView))
+        {
+            if (targetView.tag == "Player")
             {
-                target.RPC("ReduceHealth", RpcTarget.AllBuffered, BulletDamage);
+                targetView.RPC("ReduceHealth", RpcTarget.AllBuffered, BulletDamage);
             }
             photonView.RPC("DestroyObject", RpcTarget.AllBuffered);
         }

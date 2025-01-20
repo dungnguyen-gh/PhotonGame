@@ -17,7 +17,10 @@ public class Health : MonoBehaviourPun
     public GameObject playerCanvas;
 
     private void Awake() {
-        GameManager.Instance.LocalPlayer = this.gameObject;
+        if (photonView.IsMine)
+        {
+            GameManager.Instance.LocalPlayer = this.gameObject;
+        }
     }
 
     [PunRPC]
@@ -28,12 +31,11 @@ public class Health : MonoBehaviourPun
 
     private void CheckHealth()
     {
-        FillImage.fillAmount = HealthAmount/100f;
-        if(photonView.IsMine && HealthAmount <= 0)
+        if(HealthAmount <= 0 && photonView.IsMine)
         {
             GameManager.Instance.EnableRespawn();
             playerMove.disableInput = true;
-            this.GetComponent<PhotonView>().RPC("Dead", RpcTarget.AllBuffered);
+            photonView.RPC("Dead", RpcTarget.AllBuffered);
         }
     }
     public void EnableInput() 
@@ -62,16 +64,9 @@ public class Health : MonoBehaviourPun
 
     private void ModifyHealth(float amount)
     {
-        if (photonView.IsMine)
-        {
-            HealthAmount -= amount;
-            FillImage.fillAmount -= amount;
-        }
-        else
-        {
-            HealthAmount -= amount;
-            FillImage.fillAmount -= amount;
-        }
+        HealthAmount -= amount;
+
+        FillImage.fillAmount = HealthAmount / 100f;
 
         CheckHealth();
     }
